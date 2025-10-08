@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
+import { ApplianceProvider } from "./contexts/ApplianceContext";
 import Dashboard from "./pages/Dashboard";
 import AddAppliance from "./pages/AddAppliance";
 import ApplianceDetail from "./pages/ApplianceDetail";
@@ -17,14 +18,16 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Navigation />
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/add" element={<AddAppliance />} />
-          <Route path="/appliance/:id" element={<ApplianceDetail />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <ApplianceProvider>
+          <Navigation />
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/add" element={<AddAppliance />} />
+            <Route path="/appliance/:id" element={<ApplianceDetail />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </ApplianceProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAppliances } from '@/contexts/ApplianceContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 
 export default function AddAppliance() {
   const navigate = useNavigate();
+  const { addAppliance } = useAppliances();
   const [formData, setFormData] = useState({
     name: '',
     brand: '',
@@ -28,7 +30,26 @@ export default function AddAppliance() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would save to a database
+    
+    const newAppliance = {
+      name: formData.name,
+      brand: formData.brand,
+      model: formData.model,
+      category: formData.category,
+      purchaseDate: formData.purchaseDate,
+      warrantyMonths: parseInt(formData.warrantyMonths),
+      serialNumber: formData.serialNumber || undefined,
+      purchaseLocation: formData.purchaseLocation || undefined,
+      supportContact: (formData.supportName || formData.supportPhone || formData.supportEmail || formData.supportWebsite) ? {
+        name: formData.supportName,
+        phone: formData.supportPhone || undefined,
+        email: formData.supportEmail || undefined,
+        website: formData.supportWebsite || undefined,
+      } : undefined,
+      notes: formData.notes || undefined,
+    };
+
+    addAppliance(newAppliance);
     toast.success('Appliance added successfully!');
     navigate('/');
   };

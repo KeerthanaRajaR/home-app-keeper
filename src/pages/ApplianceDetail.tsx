@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockAppliances } from '@/data/mockData';
+import { useAppliances } from '@/contexts/ApplianceContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +21,8 @@ import { getWarrantyStatus, calculateWarrantyEndDate, formatWarrantyDate, getDay
 export default function ApplianceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const appliance = mockAppliances.find(a => a.id === id);
+  const { getAppliance } = useAppliances();
+  const appliance = id ? getAppliance(id) : undefined;
 
   if (!appliance) {
     return (

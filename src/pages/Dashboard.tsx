@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ApplianceCard } from '@/components/ApplianceCard';
-import { mockAppliances } from '@/data/mockData';
+import { useAppliances } from '@/contexts/ApplianceContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter } from 'lucide-react';
@@ -14,11 +14,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Dashboard() {
+  const { appliances } = useAppliances();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilters, setStatusFilters] = useState<WarrantyStatus[]>([]);
 
   const filteredAppliances = useMemo(() => {
-    return mockAppliances.filter((appliance) => {
+    return appliances.filter((appliance) => {
       const matchesSearch = 
         appliance.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         appliance.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -28,7 +29,7 @@ export default function Dashboard() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [searchQuery, statusFilters]);
+  }, [appliances, searchQuery, statusFilters]);
 
   const toggleStatusFilter = (status: WarrantyStatus) => {
     setStatusFilters(prev => 
@@ -39,12 +40,12 @@ export default function Dashboard() {
   };
 
   const stats = useMemo(() => {
-    const total = mockAppliances.length;
-    const active = mockAppliances.filter(a => getWarrantyStatus(a) === 'active').length;
-    const expiring = mockAppliances.filter(a => getWarrantyStatus(a) === 'expiring').length;
-    const expired = mockAppliances.filter(a => getWarrantyStatus(a) === 'expired').length;
+    const total = appliances.length;
+    const active = appliances.filter(a => getWarrantyStatus(a) === 'active').length;
+    const expiring = appliances.filter(a => getWarrantyStatus(a) === 'expiring').length;
+    const expired = appliances.filter(a => getWarrantyStatus(a) === 'expired').length;
     return { total, active, expiring, expired };
-  }, []);
+  }, [appliances]);
 
   return (
     <div className="min-h-screen bg-background">

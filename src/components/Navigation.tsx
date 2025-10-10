@@ -1,10 +1,19 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, Plus, Package } from 'lucide-react';
+import { Home, Plus, Package, Moon, Sun, Search, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
+import { useState, useEffect } from 'react';
 
 export function Navigation() {
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // After mounting, we have access to the theme
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const links = [
     { to: '/', icon: Home, label: 'Dashboard' },
@@ -39,12 +48,42 @@ export function Navigation() {
               ))}
             </div>
           </div>
-          <Link to="/add">
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Appliance
+          
+          <div className="flex items-center gap-2">
+            {/* Search button for mobile */}
+            <Button variant="ghost" size="icon" className="md:hidden">
+              <Search className="h-5 w-5" />
             </Button>
-          </Link>
+            
+            {/* Notification button */}
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-destructive"></span>
+            </Button>
+            
+            {/* Dark mode toggle */}
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+                <span className="sr-only">Toggle theme</span>
+              </Button>
+            )}
+            
+            <Link to="/add">
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Add Appliance</span>
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </nav>

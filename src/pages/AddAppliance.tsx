@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Plus, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AddAppliance() {
@@ -27,6 +28,19 @@ export default function AddAppliance() {
     supportWebsite: '',
     notes: ''
   });
+  
+  // Maintenance tasks state
+  const [maintenanceTasks, setMaintenanceTasks] = useState<any[]>([]);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [taskForm, setTaskForm] = useState({
+    name: '',
+    date: '',
+    frequency: 'once',
+    notes: '',
+    serviceProviderName: '',
+    serviceProviderPhone: '',
+    serviceProviderEmail: ''
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +60,7 @@ export default function AddAppliance() {
         email: formData.supportEmail || undefined,
         website: formData.supportWebsite || undefined,
       } : undefined,
+      maintenanceTasks: maintenanceTasks.length > 0 ? maintenanceTasks : undefined,
       notes: formData.notes || undefined,
     };
 
@@ -60,6 +75,64 @@ export default function AddAppliance() {
       [e.target.name]: e.target.value
     }));
   };
+
+  // Generate a simple ID without uuid package
+  const generateId = () => {
+    return Math.random().toString(36).substr(2, 9);
+  };
+
+  // Handle maintenance task form changes
+  const handleTaskFormChange = (field: string, value: string) => {
+    setTaskForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Handle adding a new maintenance task
+  const handleAddTask = () => {
+    if (!taskForm.name || !taskForm.date) {
+      toast.error('Please fill in required fields');
+      return;
+    }
+
+    const newTask = {
+      id: generateId(),
+      name: taskForm.name,
+      date: taskForm.date,
+      frequency: taskForm.frequency as 'once' | 'monthly' | 'quarterly' | 'yearly',
+      completed: false,
+      notes: taskForm.notes || undefined,
+      serviceProvider: (taskForm.serviceProviderName || taskForm.serviceProviderPhone || taskForm.serviceProviderEmail) ? {
+        name: taskForm.serviceProviderName,
+        phone: taskForm.serviceProviderPhone || undefined,
+        email: taskForm.serviceProviderEmail || undefined
+      } : undefined
+    };
+
+    setMaintenanceTasks(prev => [...prev, newTask]);
+
+    // Reset form
+    setTaskForm({
+      name: '',
+      date: '',
+      frequency: 'once',
+      notes: '',
+      serviceProviderName: '',
+      serviceProviderPhone: '',
+      serviceProviderEmail: ''
+    });
+    setShowTaskForm(false);
+    toast.success('Maintenance task added!');
+  };
+
+  // Handle removing a maintenance task
+  const handleRemoveTask = (index: number) => {
+    setMaintenanceTasks(prev => prev.filter((_, i) => i !== index));
+    toast.info('Maintenance task removed');
+  };
+
+  // ... rest of the existing code remains the same ...
 
   return (
     <div className="min-h-screen bg-background">
@@ -247,6 +320,166 @@ export default function AddAppliance() {
                   onChange={handleChange}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Wrench className="h-5 w-5" />
+                    Maintenance Schedule
+                  </CardTitle>
+                  <CardDescription>Plan maintenance tasks for this appliance</CardDescription>
+                </div>
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => setShowTaskForm(!showTaskForm)}
+                >
+                  <Plus className="h-4 w-4" />
+                  {showTaskForm ? 'Cancel' : 'Add Task'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {showTaskForm && (
+                <div className="mb-6 p-4 border rounded-lg bg-muted/50">
+                  <h3 className="font-medium mb-3">Add Maintenance Task</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="taskName">Task Name *</Label>
+                      <Input
+                        id="taskName"
+                        value={taskForm.name}
+                        onChange={(e) => handleTaskFormChange('name', e.target.value)}
+                        placeholder="e.g., Clean filters, Replace belts"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="taskDate">Scheduled Date *</Label>
+                        <Input
+                          id="taskDate"
+                          type="date"
+                          value={taskForm.date}
+                          onChange={(e) => handleTaskFormChange('date', e.target.value)}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="taskFrequency">Frequency</Label>
+                        <Select 
+                          value={taskForm.frequency} 
+                          onValueChange={(value) => handleTaskFormChange('frequency', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="once">Once</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                            <SelectItem value="quarterly">Quarterly</SelectItem>
+                            <SelectItem value="yearly">Yearly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="taskNotes">Notes</Label>
+                      <Textarea
+                        id="taskNotes"
+                        value={taskForm.notes}
+                        onChange={(e) => handleTaskFormChange('notes', e.target.value)}
+                        placeholder="Additional details about this task..."
+                      />
+                    </div>
+                    
+                    <div className="border-t pt-4">
+                      <h4 className="font-medium mb-2">Service Provider (Optional)</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <Label htmlFor="providerName">Name</Label>
+                          <Input
+                            id="providerName"
+                            value={taskForm.serviceProviderName}
+                            onChange={(e) => handleTaskFormChange('serviceProviderName', e.target.value)}
+                            placeholder="Provider name"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="providerPhone">Phone</Label>
+                          <Input
+                            id="providerPhone"
+                            value={taskForm.serviceProviderPhone}
+                            onChange={(e) => handleTaskFormChange('serviceProviderPhone', e.target.value)}
+                            placeholder="Phone number"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="providerEmail">Email</Label>
+                          <Input
+                            id="providerEmail"
+                            type="email"
+                            value={taskForm.serviceProviderEmail}
+                            onChange={(e) => handleTaskFormChange('serviceProviderEmail', e.target.value)}
+                            placeholder="Email address"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Button type="button" onClick={handleAddTask} className="w-full gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add Maintenance Task
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {maintenanceTasks.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-medium">Scheduled Tasks ({maintenanceTasks.length})</h4>
+                  {maintenanceTasks.map((task, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                      <div>
+                        <p className="font-medium text-foreground">{task.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(task.date).toLocaleDateString()} • {task.frequency}
+                        </p>
+                      </div>
+                      <Button 
+                        type="button"
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleRemoveTask(index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {!showTaskForm && maintenanceTasks.length === 0 && (
+                <div className="text-center py-4 text-muted-foreground">
+                  <Wrench className="h-8 w-8 mx-auto mb-2" />
+                  <p>No maintenance tasks added yet</p>
+                  <Button 
+                    type="button"
+                    variant="ghost" 
+                    className="mt-2"
+                    onClick={() => setShowTaskForm(true)}
+                  >
+                    Add your first maintenance task
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 

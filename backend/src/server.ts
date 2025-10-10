@@ -22,24 +22,18 @@ if (process.env.NODE_ENV === 'production') {
   // Serve static files from the frontend dist directory
   const frontendDistPath = path.join(__dirname, '../../dist');
   app.use(express.static(frontendDistPath));
-  
-  // The "catchall" handler: for any request that doesn't
-  // match one above, send back React's index.html file.
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendDistPath, 'index.html'));
-  });
 }
 
 // Error handling middleware
 app.use(errorHandler);
 
-// 404 handler - this should be the last middleware
+// Global 404 handler - this should be the last middleware
 app.use((req, res) => {
   // If the request is for an API route, return JSON error
   if (req.path.startsWith('/api')) {
     res.status(404).json({ error: 'API Route not found' });
   } else {
-    // For non-API routes, let the frontend handle it (for React Router)
+    // For non-API routes in production, serve the frontend index.html
     if (process.env.NODE_ENV === 'production') {
       const frontendDistPath = path.join(__dirname, '../../dist');
       res.sendFile(path.join(frontendDistPath, 'index.html'));
